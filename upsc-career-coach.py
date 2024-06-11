@@ -7,14 +7,17 @@ from langchain_openai import AzureChatOpenAI
 
 from crewai_tools.tools import WebsiteSearchTool, FileReadTool
 from crewai_tools import SerperDevTool
+from langchain_community.tools import DuckDuckGoSearchRun
+
 from crewai import Task
-from crewai import Crew,Process
+from crewai import Crew, Process
 
 
 ## TOOL 
 web_search_tool = WebsiteSearchTool()
 #seper_dev_tool = SerperDevTool()
 #web_search_tool = SerperDevTool()
+search_tool = DuckDuckGoSearchRun()
 
 
 ## AGENT
@@ -48,7 +51,7 @@ upsc_researcher=Agent(
         "the prepration of UPSC aspirants."
 
     ),
-    tools=[web_search_tool],
+    tools=[web_search_tool, search_tool],
     llm=llm,
     allow_delegation=True
 
@@ -66,7 +69,7 @@ upsc_writer = Agent(
     "engaging narratives that captivate and educate, bringing new"
     "discoveries to light in an accessible manner to educate a UPSC aspirant's."
   ),
-  tools=[web_search_tool],
+  tools=[web_search_tool, search_tool],
   llm=llm,
   allow_delegation=False
 )
@@ -81,7 +84,7 @@ research_task = Task(
     "its opportunities, and potential risks."
   ),
   expected_output='A comprehensive 5 paragraphs long report on the latest UPSC trends.',
-  tools=[web_search_tool],
+  tools=[web_search_tool, search_tool],
   agent=upsc_researcher,
 )
 
@@ -93,7 +96,7 @@ writer_task = Task(
     "This article should be easy to understand, engaging, and positive."
   ),
   expected_output='A 4 paragraph article on {topic} formatted as markdown.',
-  tools=[web_search_tool],
+  tools=[web_search_tool, search_tool],
   agent=upsc_writer,
   async_execution=False,
   output_file='upsc-blog.md'  # Example of output customization
@@ -105,6 +108,7 @@ crew=Crew(
     agents=[upsc_researcher, upsc_writer],
     tasks=[research_task, writer_task],
     process=Process.sequential,
+    timeout=60
 )
 
 
